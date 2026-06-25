@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
+import 'contact_manager_screen.dart';
 
 void main() {
   runApp(const WomenSafetyApp());
@@ -191,6 +192,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+
+SizedBox(
+  width: 250,
+  height: 60,
+  child: ElevatedButton.icon(
+    icon: const Icon(Icons.person_add),
+    label: const Text(
+      "Manage Contacts",
+      style: TextStyle(fontSize: 18),
+    ),
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              const ContactManagerScreen(),
+        ),
+      );
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.pink,
+      foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+    ),
+  ),
+),
             ],
           ),
         ),
