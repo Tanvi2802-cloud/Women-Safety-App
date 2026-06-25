@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const WomenSafetyApp());
@@ -17,7 +18,8 @@ class WomenSafetyApp extends StatelessWidget {
   }
 }
 
-// HOME SCREEN
+// ================= HOME SCREEN =================
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -46,7 +48,7 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(
-                Icons.shield,
+                Icons.security,
                 size: 100,
                 color: Colors.red,
               ),
@@ -141,13 +143,27 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// EMERGENCY CONTACTS SCREEN
+// ================= EMERGENCY CONTACTS SCREEN =================
+
 class EmergencyContactsScreen extends StatelessWidget {
   const EmergencyContactsScreen({super.key});
 
+  Future<void> makeCall(String number) async {
+    final Uri phoneUri = Uri(
+      scheme: 'tel',
+      path: number,
+    );
+
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    }
+  }
+
   Widget contactCard(
+    BuildContext context,
     String title,
     IconData icon,
+    String number,
   ) {
     return Card(
       elevation: 3,
@@ -169,7 +185,25 @@ class EmergencyContactsScreen extends StatelessWidget {
             color: Colors.black87,
           ),
         ),
-        trailing: const Icon(Icons.arrow_forward_ios),
+        subtitle: Text(
+          "Tap to call $number",
+        ),
+        trailing: const Icon(Icons.call),
+        onTap: () async {
+          try {
+            await makeCall(number);
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    "Call feature works best on Android device",
+                  ),
+                ),
+              );
+            }
+          }
+        },
       ),
     );
   }
@@ -195,18 +229,24 @@ class EmergencyContactsScreen extends StatelessWidget {
         child: Column(
           children: [
             contactCard(
-              "Police - 112",
+              context,
+              "Police",
               Icons.local_police,
+              "112",
             ),
 
             contactCard(
-              "Ambulance - 108",
+              context,
+              "Ambulance",
               Icons.medical_services,
+              "108",
             ),
 
             contactCard(
-              "Women Helpline - 1091",
+              context,
+              "Women Helpline",
               Icons.support_agent,
+              "1091",
             ),
           ],
         ),
