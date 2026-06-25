@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(const WomenSafetyApp());
@@ -20,8 +21,57 @@ class WomenSafetyApp extends StatelessWidget {
 
 // ================= HOME SCREEN =================
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String locationText = "Press SOS to get your location";
+
+  Future<void> getLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+    if (!serviceEnabled) {
+      setState(() {
+        locationText = "Location Services are OFF";
+      });
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      setState(() {
+        locationText = "Location Permission Permanently Denied";
+      });
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+
+    setState(() {
+      locationText =
+          "Latitude: ${position.latitude}\nLongitude: ${position.longitude}";
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Location Retrieved Successfully"),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,20 +124,26 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 50),
+              const SizedBox(height: 20),
+
+              Text(
+                locationText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 40),
 
               // SOS BUTTON
               SizedBox(
                 width: 250,
                 height: 80,
                 child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("SOS Alert Sent!"),
-                      ),
-                    );
-                  },
+                  onPressed: getLocation,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red.shade700,
                     foregroundColor: Colors.white,
@@ -182,12 +238,9 @@ class EmergencyContactsScreen extends StatelessWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
           ),
         ),
-        subtitle: Text(
-          "Tap to call $number",
-        ),
+        subtitle: Text("Tap to call $number"),
         trailing: const Icon(Icons.call),
         onTap: () async {
           try {
@@ -234,14 +287,12 @@ class EmergencyContactsScreen extends StatelessWidget {
               Icons.local_police,
               "112",
             ),
-
             contactCard(
               context,
               "Ambulance",
               Icons.medical_services,
               "108",
             ),
-
             contactCard(
               context,
               "Women Helpline",
